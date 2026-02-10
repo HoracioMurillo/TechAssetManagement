@@ -12,31 +12,32 @@ namespace TechAssetManagement.Web.Controllers
     {
         private readonly AppDbContext _context;
 
+        //Controlador para manejar CRUD de Equipos (Assets)
         public AssetsController(AppDbContext context)
         {
             _context = context;
         }
 
-        // GET: Assets (Listado)
+   
         public async Task<IActionResult> Index()
         {
             return View(await _context.Assets.ToListAsync());
         }
 
-        // GET: Assets/Create
+  
         public IActionResult Create()
         {
             ViewData["AssetTypeId"] = new SelectList(_context.AssetTypes, "Id", "Name");
             return View();
         }
 
-        // POST: Assets/Create
+    
         [HttpPost]
         [ValidateAntiForgeryToken]
 
         public async Task<IActionResult> Create(Asset asset)
         {
-            // ... validaciones de serial ...
+   
             if (await _context.Assets.AnyAsync(a => a.SerialNumber == asset.SerialNumber))
             {
                 ModelState.AddModelError("SerialNumber", "Ya existe un equipo con este número de serie.");
@@ -52,35 +53,31 @@ namespace TechAssetManagement.Web.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            // --- CORRECCIÓN CRÍTICA AQUÍ ---
-            // Si el modelo NO es válido (ej. falta nombre), volvemos a la vista.
-            // PERO debemos volver a llenar el SelectList, si no, ¡el Select desaparece!
+  
             ViewData["AssetTypeId"] = new SelectList(_context.AssetTypes, "Id", "Name", asset.AssetTypeId);
-            // -------------------------------
 
             return View(asset);
         }
 
         // POST: CreateTypeJson (Para el Modal)
         [HttpPost]
-        public async Task<IActionResult> CreateTypeJson([FromBody] AssetType assetType) // <--- [FromBody] es vital
+        public async Task<IActionResult> CreateTypeJson([FromBody] AssetType assetType) 
         {
             // Verificamos que venga el nombre
             if (assetType == null || string.IsNullOrWhiteSpace(assetType.Name))
             {
-                return Json(new { success = false, message = "El nombre es obligatorio" });
+                return Json(new { success = false, message = "El nombre para el Tipo es obligatorio" });
             }
 
             // Verificar duplicados
             if (await _context.AssetTypes.AnyAsync(t => t.Name == assetType.Name))
             {
-                return Json(new { success = false, message = "Este tipo ya existe" });
+                return Json(new { success = false, message = "Este tipo de equipo ya existe" });
             }
 
             _context.Add(assetType);
             await _context.SaveChangesAsync();
 
-            // Retornamos los datos. OJO: .NET Core por defecto convierte a camelCase (id, name) en el JSON
             return Json(new { success = true, data = assetType });
         }
 
@@ -134,7 +131,7 @@ namespace TechAssetManagement.Web.Controllers
             var asset = await _context.Assets.FindAsync(id);
             if (asset == null)
             {
-                return Json(new { success = false, message = "Equipo no encontrado" });
+                return Json(new { success = false, message = "Equipo no  se ha encontrado" });
             }
 
             // Regla de Negocio: No borrar si tiene tickets históricos

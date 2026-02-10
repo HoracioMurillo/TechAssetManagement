@@ -2,6 +2,7 @@
 
 namespace TechAssetManagement.Web.Models
 {
+    // ViewModel para la página de Reset Password. Solo necesitamos el Token, la nueva contraseña y su confirmación.
     public class ResetPasswordViewModel
     {
         [Required]

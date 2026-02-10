@@ -2,6 +2,7 @@
 
 namespace TechAssetManagement.Web.Models
 {
+    // ViewModel para la página de Registro. Incluye validaciones básicas.
     public class RegisterViewModel
     {
         [Required(ErrorMessage = "El nombre es obligatorio")]

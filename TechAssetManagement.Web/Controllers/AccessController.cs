@@ -5,7 +5,7 @@ using TechAssetManagement.Core.Entities;
 using TechAssetManagement.Core.Interfaces;
 using TechAssetManagement.Infraestructure;
 using TechAssetManagement.Web.Models;
-
+//Controlador para manejar Login, Logout, Recuperación de Contraseña
 namespace TechAssetManagement.Web.Controllers
 {
 
@@ -24,7 +24,7 @@ namespace TechAssetManagement.Web.Controllers
         {
             if (HttpContext.Session.GetString("UserEmail") != null)
             {
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("Login", "Account");
             }
             return View();
         }
@@ -40,7 +40,7 @@ namespace TechAssetManagement.Web.Controllers
                 {
                     if (!user.IsActive)
                     {
-                        TempData["Error"] = "Tu cuenta está desactivada. Contacta a RRHH."; // SweetAlert
+                        TempData["Error"] = "Tu cuenta está desactivada. Contacta al Administrador del Sistema."; // SweetAlert
                         return View();
                     }
 
@@ -56,7 +56,7 @@ namespace TechAssetManagement.Web.Controllers
                 }
                 else
                 {
-                    TempData["Error"] = "Usuario o contraseña incorrectos."; // SweetAlert
+                    TempData["Error"] = "Usuario o contraseña incorrectos."; 
                 }
             }
             return View();
@@ -64,7 +64,7 @@ namespace TechAssetManagement.Web.Controllers
         public IActionResult Logout()
         {
             HttpContext.Session.Clear();
-            TempData["Success"] = "Sesión cerrada correctamente."; // Opcional, se verá en el Login
+            TempData["Success"] = "Sesión cerrada correctamente."; 
             return RedirectToAction("Login");
         }
 
@@ -77,21 +77,28 @@ namespace TechAssetManagement.Web.Controllers
             if (user == null)
             {
                 // Por seguridad, no decimos si existe o no, pero aquí simulamos éxito
-                TempData["Success"] = "Si el correo existe, recibirás instrucciones.";
+                TempData["Success"] = "Si el correo existe, recibirás instrucciones para la recuperacion";
                 return View();
             }
 
-            // Generar Token
+          
             string token = Guid.NewGuid().ToString();
             user.ResetToken = token;
-            user.ResetTokenExpiry = DateTime.Now.AddHours(1); // Vence en 1 hora
+            user.ResetTokenExpiry = DateTime.Now.AddHours(1); 
             await _context.SaveChangesAsync();
 
             // Crear Link
             var resetLink = Url.Action("ResetPassword", "Access", new { token = token }, Request.Scheme);
 
-            // Enviar Correo
-            string body = $"Hola {user.FirstName}, <br>Haz clic aquí para recuperar tu clave: <a href='{resetLink}'>Restablecer Contraseña</a>";
+            string body = $@"
+    <h2>Recuperación de Acceso</h2>
+    <p>Hola <b>{user.FirstName}</b>,</p>
+    <p>Hemos recibido una solicitud para restablecer tu contraseña. Si no fuiste tú, ignora este mensaje.</p>
+    <div style='text-align: center; margin: 30px 0;'>
+        <a href='{resetLink}' style='background-color: #dc3545; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-size: 16px;'>Restablecer mi Contraseña</a>
+    </div>
+    <p><small>Este enlace expira en 1 hora.</small></p>
+";
             await _emailService.SendEmailAsync(user.Email, "Recuperación de Contraseña - TechAsset", body);
 
             TempData["Success"] = "Revisa tu correo electrónico.";

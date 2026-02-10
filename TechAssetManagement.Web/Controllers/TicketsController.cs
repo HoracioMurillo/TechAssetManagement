@@ -6,6 +6,7 @@ using TechAssetManagement.Core.Interfaces;
 using TechAssetManagement.Infraestructure;
 using TechAssetManagement.Web.Filters;
 
+//Controlador para manejar CRUD de Tickets (Incidencias)
 namespace TechAssetManagement.Web.Controllers
 {
     [AuthorizeUser]
@@ -88,7 +89,24 @@ namespace TechAssetManagement.Web.Controllers
                     ChangedAt = DateTime.Now
                 });
                 await _context.SaveChangesAsync();
-                string adminMsg = $"Nuevo ticket creado por <b>{HttpContext.Session.GetString("UserName")}</b>.<br>Título: {ticket.Title}";
+                string adminMsg = $@"
+            <h2 style='color: #198754;'>¡Tienes una nueva tarea!</h2>
+            <p>Hola <b>{ticket.RequestedByUser.FirstName}</b>, se te ha asignado el siguiente caso:</p>
+            
+            <div style='background-color: #fff3cd; border-left: 5px solid #ffc107; padding: 15px; margin: 20px 0;'>
+                <p style='margin: 0; font-size: 18px;'><b>{ticket.Title}</b></p>
+                <p style='margin: 5px 0 0; color: #666;'>{ticket.Description}</p>
+            </div>
+
+            <table style='width: 100%; border-collapse: collapse;'>
+                <tr><td><b>Estado Actual:</b></td><td><span style='background-color: #0dcaf0; padding: 2px 8px; border-radius: 4px;'>{ticket.Status}</span></td></tr>
+                <tr><td><b>Prioridad:</b></td><td>{ticket.Priority}</td></tr>
+                <tr><td><b>Equipo:</b></td><td>{(ticket.Asset != null ? ticket.Asset.Name : "N/A")}</td></tr>
+            </table>
+            
+            <br>
+    
+        ";
                 await NotifyAdmins("Nuevo Ticket Registrado", adminMsg);
 
                 TempData["Success"] = "Ticket creado exitosamente.";
@@ -216,7 +234,7 @@ namespace TechAssetManagement.Web.Controllers
                         var techUser = await _context.Users.FindAsync(newTechId.Value);
                         if (techUser != null && !string.IsNullOrEmpty(techUser.Email))
                         {
-                            string subject = $"Asignación de Ticket #{ticketInDb.Id}";
+                            string subject = $"Asignación de Ticket # {ticketInDb.Id}";
                             string msg = $@"Hola {techUser.FirstName},<br><br>
                                   Se te ha asignado un nuevo ticket:<br>
                                   <b>Título:</b> {ticketInDb.Title}<br>
