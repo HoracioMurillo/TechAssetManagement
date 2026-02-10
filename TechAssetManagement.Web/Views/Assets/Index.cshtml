@@ -1,0 +1,102 @@
+﻿@model IEnumerable<TechAssetManagement.Core.Entities.Asset>
+
+@{
+    ViewData["Title"] = "Inventario de Equipos";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Inventario de Equipos</h2>
+    <a asp-action="Create" class="btn btn-primary"><i class="fas fa-plus"></i> Nuevo Equipo</a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Nombre</th>
+                    <th>Serial</th>
+                    <th>Precio</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td class="fw-bold">@item.Name</td>
+                        <td><span class="badge bg-light text-dark border">@item.SerialNumber</span></td>
+                        <td>@item.Price.ToString("C")</td>
+                        <td>
+                            @switch (item.Status)
+                            {
+                                case "Available":
+                                    <span class="badge bg-success">Disponible</span>
+                                    ; break;
+                                case "Assigned":
+
+                                    <span class="badge bg-primary">Asignado</span>
+                                    ; break;
+                                case "Maintenance":
+
+                                    <span class="badge bg-warning text-dark">Mantenimiento</span>
+                                    ; break;
+                                case "Retired":
+
+                                    <span class="badge bg-secondary">Retirado</span>
+                                    ; break;
+                                default:
+
+                                    <span class="badge bg-info">@item.Status</span>
+                                    ; break;
+                            }
+                        </td>
+                        <td>
+                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary" title="Editar">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <button onclick="deleteAsset(@item.Id)" class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function deleteAsset(id) {
+            Swal.fire({
+                title: '¿Estás seguro?',
+                text: "Esta acción no se puede deshacer.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Llamada AJAX al servidor
+                    $.ajax({
+                        url: '@Url.Action("DeleteConfirmed", "Assets")',
+                        type: 'POST',
+                        data: { id: id },
+                        success: function (response) {
+                            if (response.success) {
+                                Swal.fire('Eliminado', response.message, 'success')
+                                    .then(() => location.reload()); // Recargar página
+                            } else {
+                                Swal.fire('Error', response.message, 'error');
+                            }
+                        }
+                    });
+                }
+            })
+        }
+    </script>
+}

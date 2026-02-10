@@ -1,0 +1,148 @@
+﻿@model TechAssetManagement.Core.Entities.Ticket
+
+@{
+    ViewData["Title"] = "Detalles del Ticket";
+    // Recuperamos el historial que enviamos desde el controlador
+    var historyList = ViewBag.History as IEnumerable<TechAssetManagement.Core.Entities.TicketHistory>;
+}
+
+<div class="container mt-4">
+    <!-- Encabezado con Botones -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>
+            <i class="fas fa-info-circle text-info"></i> Ticket #@Model.Id
+            @if (Model.Status == "Open")
+            {
+                <span class="badge bg-success fs-6">Abierto</span>
+            }
+            else if (Model.Status == "Closed")
+            {
+
+                <span class="badge bg-secondary fs-6">Cerrado</span>
+            }
+            else
+            {
+
+                <span class="badge bg-primary fs-6">@Model.Status</span>
+            }
+        </h2>
+        <div>
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning text-dark">
+                <i class="fas fa-edit"></i> Gestionar
+            </a>
+            <a asp-action="Index" class="btn btn-secondary">Volver</a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- COLUMNA IZQUIERDA: Información Estática -->
+        <div class="col-md-7">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light fw-bold">Información General</div>
+                <div class="card-body">
+                    <h4 class="card-title">@Model.Title</h4>
+                    <p class="card-text text-muted">@Model.Description</p>
+
+                    <hr />
+
+                    <dl class="row">
+                        <dt class="col-sm-4">Solicitante:</dt>
+                        <dd class="col-sm-8">@Model.RequestedByUser?.FullName</dd>
+
+                        <dt class="col-sm-4">Fecha Reporte:</dt>
+                        <dd class="col-sm-8">@Model.CreatedAt.ToString("g")</dd>
+
+                        <dt class="col-sm-4">Prioridad:</dt>
+                        <dd class="col-sm-8">
+                            @if (Model.Priority == "Critical")
+                            {
+                                <span class="text-danger fw-bold">Crítica</span>
+                            }
+                            else
+                            {
+
+                                <span>@Model.Priority</span>
+                            }
+                        </dd>
+
+                        <dt class="col-sm-4">Asignado a:</dt>
+                        <dd class="col-sm-8">
+                            @if (Model.AssignedToUser != null)
+                            {
+                                <!-- Fíjate en el Model.AssignedToUser.FullName -->
+                                <span class="badge bg-info text-dark">
+                                    <i class="fas fa-user-check"></i> @Model.AssignedToUser.FullName
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-warning text-dark border">
+                                    <i class="fas fa-user-clock"></i> Pendiente de Asignación
+                                </span>
+                            }
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+
+            <!-- Tarjeta del Equipo Asociado -->
+            <div class="card shadow-sm border-info">
+                <div class="card-header bg-info text-white">Equipo Afectado</div>
+                <div class="card-body">
+                    @if (Model.Asset != null)
+                    {
+                        <h5 class="card-title"><i class="fas fa-laptop"></i> @Model.Asset.Name</h5>
+                        <p class="mb-1"><strong>Serial:</strong> @Model.Asset.SerialNumber</p>
+                        <p class="mb-0"><strong>Estado Actual:</strong> @Model.Asset.Status</p>
+                    }
+                    else
+                    {
+                        <p class="text-muted">No se especificó un equipo.</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- COLUMNA DERECHA: Línea de Tiempo (Historial) -->
+        <div class="col-md-5">
+            <div class="card shadow h-100">
+                <div class="card-header bg-dark text-white">
+                    <i class="fas fa-history"></i> Auditoría de Cambios
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        @if (historyList != null && historyList.Any())
+                        {
+                            foreach (var item in historyList)
+                            {
+                                <li class="list-group-item">
+                                    <div class="d-flex justify-content-between">
+                                        <small class="text-muted">@item.ChangedAt.ToString("dd/MM/yyyy HH:mm")</small>
+                                        <span class="badge bg-light text-dark border">@item.Action</span>
+                                    </div>
+                                    <div class="mt-1">
+                                        <strong>@item.ChangedByUser?.FullName</strong>
+                                    </div>
+                                    @if (!string.IsNullOrEmpty(item.OldValue) || !string.IsNullOrEmpty(item.NewValue))
+                                    {
+                                        <div class="small mt-1">
+                                            <span class="text-danger">@item.OldValue</span>
+                                            <i class="fas fa-arrow-right mx-1 text-muted"></i>
+                                            <span class="text-success">@item.NewValue</span>
+                                        </div>
+                                    }
+                                </li>
+                            }
+                        }
+                        else
+                        {
+                            <li class="list-group-item text-center text-muted py-4">
+                                No hay movimientos registrados aún.
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

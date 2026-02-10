@@ -1,0 +1,147 @@
+﻿@model TechAssetManagement.Core.Entities.Ticket
+
+@{
+    ViewData["Title"] = "Nuevo Ticket";
+}
+
+<div class="container mt-4">
+    <div class="card shadow border-0">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0"><i class="fas fa-search"></i> Reportar Incidente</h4>
+        </div>
+        <div class="card-body">
+            <form asp-action="Create" id="ticketForm">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                <!-- 1. BUSCADOR DE EQUIPO (Lógica de Negocio Real) -->
+                <div class="card bg-light mb-4 border-info">
+                    <div class="card-body">
+                        <h5 class="card-title text-info mb-3">Paso 1: Identificar el Equipo</h5>
+                        <div class="row align-items-end">
+
+                            <!-- Campo para escribir el Serial -->
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Número de Serie / Placa</label>
+                                <div class="input-group">
+                                    <input type="text" id="txtSerial" class="form-control" placeholder="Ej: SN-10020" />
+                                    <button type="button" class="btn btn-info text-white" onclick="searchAsset()">
+                                        <i class="fas fa-search"></i> Buscar
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Campo de solo lectura para el Nombre (Automático) -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Producto Identificado</label>
+                                <input type="text" id="txtAssetName" class="form-control bg-white fw-bold" readonly placeholder="--- Realice la búsqueda ---" />
+                            </div>
+
+                            <!-- Indicador de Estado -->
+                            <div class="col-md-2">
+                                <label class="form-label">Estado</label>
+                                <input type="text" id="txtAssetStatus" class="form-control bg-white" readonly />
+                            </div>
+                        </div>
+
+                        <!-- CAMPO OCULTO: Esto es lo que se envía a la Base de Datos -->
+                        <!-- Importante: asp-for="AssetId" vincula este input al modelo Ticket -->
+                        <input type="hidden" asp-for="AssetId" id="hdnAssetId" />
+                        <span asp-validation-for="AssetId" class="text-danger mt-2 d-block"></span>
+                    </div>
+                </div>
+
+                <!-- 2. DATOS DEL TICKET -->
+                <div class="mb-3">
+                    <label asp-for="Title" class="form-label fw-bold">Asunto</label>
+                    <input asp-for="Title" class="form-control" placeholder="Resumen breve del fallo" />
+                    <span asp-validation-for="Title" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Description" class="form-label fw-bold">Descripción Detallada</label>
+                    <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                    <span asp-validation-for="Description" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3 w-50">
+                    <label asp-for="Priority" class="form-label fw-bold">Prioridad</label>
+                    <select asp-for="Priority" class="form-select">
+                        <option value="Low">Baja</option>
+                        <option value="Medium" selected>Media</option>
+                        <option value="High">Alta</option>
+                        <option value="Critical">Crítica</option>
+                    </select>
+                </div>
+
+                <hr />
+                <button type="submit" class="btn btn-success btn-lg"><i class="fas fa-save"></i> Crear Ticket</button>
+                <a asp-action="Index" class="btn btn-secondary btn-lg">Cancelar</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        function searchAsset() {
+            var serial = $('#txtSerial').val();
+
+            if (!serial) {
+                Swal.fire('Atención', 'Por favor ingresa un número de serie o placa.', 'warning');
+                return;
+            }
+
+            // Efecto de carga
+            $('#txtAssetName').val('Buscando...');
+
+            $.ajax({
+                url: '@Url.Action("GetAssetBySerial", "Tickets")',
+                type: 'GET',
+                data: { serial: serial },
+                success: function (response) {
+                    if (response.success) {
+                        // 1. Llenar los campos visuales
+                        $('#txtAssetName').val(response.data.name).removeClass('is-invalid').addClass('is-valid');
+                        $('#txtAssetStatus').val(response.data.status);
+
+                        // 2. LLENAR EL CAMPO OCULTO (Vital para que guarde)
+                        $('#hdnAssetId').val(response.data.id);
+
+                        // Notificación sutil
+                        const Toast = Swal.mixin({
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: false,
+                            timer: 3000
+                        });
+                        Toast.fire({ icon: 'success', title: 'Equipo encontrado' });
+
+                    } else {
+                        // Limpiar campos si no se encuentra
+                        $('#txtAssetName').val('').addClass('is-invalid');
+                        $('#txtAssetStatus').val('');
+                        $('#hdnAssetId').val(''); // Borrar ID para que no guarde basura
+
+                        Swal.fire('Error', response.message, 'error');
+                    }
+                },
+                error: function () {
+                    $('#txtAssetName').val('');
+                    Swal.fire('Error', 'Ocurrió un error al consultar el servidor.', 'error');
+                }
+            });
+        }
+
+        // Opcional: Buscar al presionar Enter en el campo serial
+        $('#txtSerial').on('keypress', function (e) {
+            if(e.which === 13){
+                e.preventDefault(); // Evitar submit del form
+                searchAsset();
+            }
+        });
+    </script>
+}

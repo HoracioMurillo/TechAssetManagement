@@ -1,0 +1,117 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - TechAssetManagement.Web</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/TechAssetManagement.Web.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="bg-light">
+
+    <!-- Estilos para el Sidebar -->
+    <style>
+        .sidebar {
+            min-height: 100vh;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+        }
+
+        .nav-link {
+            color: #333;
+            padding: 12px 20px;
+            font-weight: 500;
+        }
+
+            .nav-link:hover, .nav-link.active {
+                background-color: #e9ecef;
+                color: #0d6efd;
+                border-radius: 5px;
+            }
+
+            .nav-link i {
+                margin-right: 10px;
+                width: 20px;
+                text-align: center;
+            }
+
+        .main-content {
+            padding: 20px;
+        }
+    </style>
+
+    <div class="d-flex">
+        <!-- SIDEBAR -->
+        <div class="d-flex flex-column flex-shrink-0 p-3 bg-white sidebar" style="width: 250px;">
+            <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-dark text-decoration-none">
+                <i class="fas fa-cube fa-2x text-primary me-2"></i>
+                <span class="fs-4 fw-bold">TechAsset</span>
+            </a>
+            <hr>
+            <ul class="nav nav-pills flex-column mb-auto">
+                <li class="nav-item">
+                    <a href="@Url.Action("Index", "Home")" class="nav-link @(ViewContext.RouteData.Values["Controller"].ToString() == "Home" ? "active" : "")">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </a>
+                </li>
+                <li>
+                    <a href="@Url.Action("Index", "Assets")" class="nav-link @(ViewContext.RouteData.Values["Controller"].ToString() == "Assets" ? "active" : "")">
+                        <i class="fas fa-laptop"></i> Equipos
+                    </a>
+                </li>
+                <li>
+                    <a href="@Url.Action("Index", "Tickets")" class="nav-link @(ViewContext.RouteData.Values["Controller"].ToString() == "Tickets" ? "active" : "")">
+                        <i class="fas fa-ticket-alt"></i> Tickets
+                    </a>
+                </li>
+                @if (Context.Session.GetString("UserRole") == "Admin")
+                {
+                    <li>
+                        <a href="@Url.Action("Index", "Users")" class="nav-link @(ViewContext.RouteData.Values["Controller"].ToString() == "Users" ? "active" : "")">
+                            <i class="fas fa-users-cog"></i> Usuarios
+                        </a>
+                    </li>
+                }
+            </ul>
+            <hr>
+            <div class="dropdown">
+                <a href="#" class="d-flex align-items-center link-dark text-decoration-none dropdown-toggle" id="dropdownUser2" data-bs-toggle="dropdown" aria-expanded="false">
+                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                        @Context.Session.GetString("UserName")?.Substring(0, 1)
+                    </div>
+                    <strong>@Context.Session.GetString("UserName")</strong>
+                </a>
+                <ul class="dropdown-menu text-small shadow" aria-labelledby="dropdownUser2">
+                    <li><a class="dropdown-item text-danger" asp-controller="Access" asp-action="Logout">Cerrar Sesión</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="flex-grow-1 main-content">
+            <main role="main">
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+
+    <!-- Scripts (jQuery, Bootstrap, SweetAlert) -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <!-- Lógica de Alertas Globales (Mantenla aquí como la tenías) -->
+    <script>
+        $(document).ready(function () {
+             var successMessage = '@TempData["Success"]';
+            var errorMessage = '@TempData["Error"]';
+            // ... (Tu código de SweetAlert existente) ...
+        });
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

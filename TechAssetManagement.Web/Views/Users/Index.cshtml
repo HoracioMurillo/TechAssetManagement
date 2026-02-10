@@ -1,0 +1,63 @@
+﻿@model IEnumerable<TechAssetManagement.Core.Entities.User>
+
+<h2>Gestión de Usuarios</h2>
+<p>
+    <a asp-action="Create" class="btn btn-primary"><i class="fas fa-plus"></i> Nuevo Usuario</a>
+</p>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>Email</th>
+            <th>Rol</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.FullName</td>
+                <td>@item.Email</td>
+                <td>
+                    @if (item.Role == "Admin")
+                    {
+                        <span class="badge bg-danger">Admin</span>
+                    }
+                    else
+                    {
+
+                        <span class="badge bg-secondary">Usuario</span>
+                    }
+                </td>
+                
+                <td>
+                    <div class="form-check form-switch">
+                        <!-- El checkbox llama a la función JS al cambiar -->
+                        <input class="form-check-input" type="checkbox" onchange="toggleUserStatus(@item.Id)" @(item.IsActive ? "checked" : "")>
+                        <label class="form-check-label">@(item.IsActive ? "Activo" : "Bloqueado")</label>
+                    </div>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<script>
+    function toggleUserStatus(id) {
+        $.post('@Url.Action("ToggleStatus")', { id: id })
+         .done(function(data) {
+             if(data.success) {
+                 const Toast = Swal.mixin({
+                    toast: true, position: 'top-end', showConfirmButton: false, timer: 3000
+                 });
+                 Toast.fire({ icon: 'success', title: data.message });
+                 // Recargar para actualizar textos visuales (opcional)
+                 setTimeout(() => location.reload(), 1000);
+             } else {
+                 Swal.fire('Error', data.message, 'error');
+             }
+         });
+    }
+</script>

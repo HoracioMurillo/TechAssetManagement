@@ -1,0 +1,140 @@
+﻿@model TechAssetManagement.Core.Entities.Asset
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Registrar Nuevo Equipo</h4>
+            </div>
+            <div class="card-body">
+                <form asp-action="Create">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Name" class="form-label">Nombre del Equipo</label>
+                            <input asp-for="Name" class="form-control" placeholder="Ej: Laptop Dell Latitude" />
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="SerialNumber" class="form-label">Número de Serie</label>
+                            <input asp-for="SerialNumber" class="form-control" />
+                            <span asp-validation-for="SerialNumber" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tipo de Equipo</label>
+                        <div class="input-group">
+                            <select asp-for="AssetTypeId" class="form-select" asp-items="ViewBag.AssetTypeId" id="AssetTypeSelect">
+                                <option value="">-- Seleccione un tipo --</option>
+                            </select>
+                            <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#typeModal">
+                                <i class="fas fa-plus"></i> Nuevo
+                            </button>
+                        </div>
+                        <span asp-validation-for="AssetTypeId" class="text-danger"></span>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Price" class="form-label">Precio de Compra</label>
+                            <input asp-for="Price" type="number" step="0.01" class="form-control" />
+                            <span asp-validation-for="Price" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="PurchaseDate" class="form-label">Fecha de Compra</label>
+                            <input asp-for="PurchaseDate" type="date" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                            <span asp-validation-for="PurchaseDate" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Status" class="form-label">Estado Inicial</label>
+                        <select asp-for="Status" class="form-select">
+                            <option value="Available">Disponible</option>
+                            <option value="Maintenance">En Mantenimiento</option>
+                            <option value="Retired">Retirado / Descontinuado</option>
+                        </select>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a asp-action="Index" class="btn btn-secondary me-md-2">Cancelar</a>
+                        <button type="submit" class="btn btn-success">Guardar Equipo</button>
+                    </div>
+                </form>
+                <!-- MODAL PARA AGREGAR TIPO -->
+                <div class="modal fade" id="typeModal" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Agregar Nuevo Tipo</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label class="form-label">Nombre del Tipo</label>
+                                    <input type="text" id="NewTypeName" class="form-control" placeholder="Ej: Tablet, Proyector..." />
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                <button type="button" class="btn btn-primary" onclick="saveNewType()">Guardar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @section Scripts {
+                    @{
+                        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+                    }
+
+                    <script>
+                        function saveNewType() {
+                            var typeName = $('#NewTypeName').val();
+
+                            if (!typeName) {
+                                Swal.fire('Error', 'Debes escribir un nombre', 'warning');
+                                return;
+                            }
+
+                            // Llamada AJAX
+                            $.ajax({
+                                url: '@Url.Action("CreateTypeJson", "Assets")',
+                                type: 'POST',
+                                contentType: 'application/json',
+                                data: JSON.stringify({ Name: typeName }),
+                                success: function (response) {
+                                    if (response.success) {
+                                        // 1. Cerrar Modal
+                                        $('#typeModal').modal('hide');
+                                        $('#NewTypeName').val(''); // Limpiar input
+
+                                        // 2. Agregar al Select y seleccionarlo automáticamente
+                                        var newOption = new Option(response.data.name, response.data.id, true, true);
+                                        $('#AssetTypeSelect').append(newOption).trigger('change');
+
+                                        // 3. Alerta discreta
+                                        Swal.fire({
+                                            icon: 'success',
+                                            title: 'Tipo agregado',
+                                            toast: true,
+                                            position: 'top-end',
+                                            showConfirmButton: false,
+                                            timer: 2000
+                                        });
+                                    } else {
+                                        Swal.fire('Error', response.message, 'error');
+                                    }
+                                },
+                                error: function () {
+                                    Swal.fire('Error', 'Ocurrió un error en el servidor', 'error');
+                                }
+                            });
+                        }
+                    </script>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+

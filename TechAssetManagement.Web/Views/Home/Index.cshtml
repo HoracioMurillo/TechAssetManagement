@@ -1,0 +1,102 @@
+﻿@model TechAssetManagement.Web.Models.DashboardViewModel
+
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="container-fluid">
+    <h2 class="mb-4">Panel de Control</h2>
+
+    <!-- Tarjetas de Métricas -->
+    <div class="row mb-4">
+        <!-- Total Equipos -->
+        <div class="col-md-3">
+            <div class="card text-white bg-primary mb-3 h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-server"></i> Total Equipos</h5>
+                    <h2 class="display-4">@Model.TotalAssets</h2>
+                </div>
+            </div>
+        </div>
+        <!-- Disponibles -->
+        <div class="col-md-3">
+            <div class="card text-white bg-success mb-3 h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-check-circle"></i> Disponibles</h5>
+                    <h2 class="display-4">@Model.AvailableAssets</h2>
+                </div>
+            </div>
+        </div>
+        <!-- En Mantenimiento -->
+        <div class="col-md-3">
+            <div class="card text-white bg-warning mb-3 h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-tools"></i> Mantenimiento</h5>
+                    <h2 class="display-4">@Model.AssetsInMaintenance</h2>
+                </div>
+            </div>
+        </div>
+        <!-- Tickets Críticos -->
+        <div class="col-md-3">
+            <div class="card text-white bg-danger mb-3 h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-fire"></i> Tickets Críticos</h5>
+                    <h2 class="display-4">@Model.CriticalTickets</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de Tickets Recientes -->
+    <div class="card shadow">
+        <div class="card-header bg-white border-0">
+            <h5 class="mb-0">Últimos Tickets Reportados</h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table align-items-center table-flush">
+                <thead class="thead-light">
+                    <tr>
+                        <th>Título</th>
+                        <th>Solicitante</th>
+                        <th>Prioridad</th>
+                        <th>Estado</th>
+                        <th>Fecha</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var ticket in Model.RecentTickets)
+                    {
+                        <tr>
+                            <td>@ticket.Title</td>
+                            <td>@ticket.RequestedByUser?.FullName</td>
+                            <td>
+                                @if (ticket.Priority == "Critical")
+                                {
+                                    <span class="badge bg-danger">Crítico</span>
+                                }
+                                else if (ticket.Priority == "High")
+                                {
+
+                                    <span class="badge bg-warning text-dark">Alto</span>
+                                }
+                                else
+                                {
+
+                                    <span class="badge bg-info">@ticket.Priority</span>
+                                }
+                            </td>
+                            <td>@ticket.Status</td>
+                            <td>@ticket.CreatedAt.ToString("dd/MM/yyyy")</td>
+                        </tr>
+                    }
+                    @if (!Model.RecentTickets.Any())
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">No hay tickets recientes.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
